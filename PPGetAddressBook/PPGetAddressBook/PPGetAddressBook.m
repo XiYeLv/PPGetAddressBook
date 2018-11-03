@@ -35,7 +35,7 @@
     
     dispatch_async(queue, ^{
         
-        NSMutableArray *array = [NSMutableArray array];
+        __block NSMutableArray *array = [NSMutableArray array];
         [kPPAddressBookHandle getAddressBookDataSource:^(PPPersonModel *model) {
             
             [array addObject:model];
@@ -47,10 +47,13 @@
             });
         }];
         
-        // 将联系人数组回调到主线程
-        dispatch_async(dispatch_get_main_queue(), ^{
-            addressBookArray ? addressBookArray(array) : nil ;
-        });
+        // 防止Failure后，仍然执行addressBookArray回调
+        if (array) {// 说明可以打开通讯录获取通讯录信息(也可能通讯录为空)
+            // 将联系人数组回调到主线程
+            dispatch_async(dispatch_get_main_queue(), ^{
+                addressBookArray ? addressBookArray(array) : nil ;
+            });
+        }
     });
     
 }
